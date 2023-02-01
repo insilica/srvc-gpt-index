@@ -7,6 +7,6 @@ def main():
   parser.add_argument('index_file', type=str)
   args = parser.parse_args()
 
-  documents = SimpleDirectoryReader(args.source_dir).load_data()
+  documents = SimpleDirectoryReader(args.source_dir, recursive=True).load_data()
   index = GPTSimpleVectorIndex(documents)
   index.save_to_disk(args.index_file)
