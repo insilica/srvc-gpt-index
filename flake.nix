@@ -47,6 +47,25 @@ overrides = defaultPoetryOverrides.extend (self: super: {
             cp -r bin $out
           '';
         };
+        srvc-docs-index = stdenv.mkDerivation {
+          name = "srvc-docs-index";
+          src = ./data;
+          installPhase = ''
+            mkdir $out
+            mv srvc.json $out
+          '';
+        };
+        query-srvc-docs = stdenv.mkDerivation {
+          name = "query-srvc-docs";
+          src = ./data;
+          installPhase = ''
+            mkdir -p $out/bin
+            echo "#!/usr/bin/env bash" > query-srvc-docs
+            echo "${query}/bin/srvc-query-gpt-index \"${srvc-docs-index}/srvc.json\" \"\$@\"" >> query-srvc-docs
+            chmod +x query-srvc-docs
+            mv query-srvc-docs $out/bin
+          '';
+        };
         trainPackage = mkPoetryApplication {
           inherit overrides;
           preferWheels = true;
@@ -62,7 +81,7 @@ overrides = defaultPoetryOverrides.extend (self: super: {
           '';
         };
       in {
-        packages = { inherit query train; };
+        packages = { inherit query query-srvc-docs srvc-docs-index train; };
         devShells.default = mkShell {
           inherit DOCS_HTML_PATH;
           buildInputs =
