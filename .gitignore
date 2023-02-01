@@ -1,0 +1,7 @@
+.*
+!.devcontainer
+!.editorconfig
+!.github
+!.gitignore
+
+result
