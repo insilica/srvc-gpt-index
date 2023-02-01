@@ -27,16 +27,30 @@
         inherit (poetry2nix.legacyPackages.${system})
           defaultPoetryOverrides mkPoetryApplication mkPoetryEnv;
         DOCS_HTML_PATH = srvc.packages.${system}.docs-html;
-        trainPackage = mkPoetryApplication {
-          inherit DOCS_HTML_PATH;
-          preferWheels = true;
-          projectDir = ./train;
-          overrides = defaultPoetryOverrides.extend (self: super: {
+overrides = defaultPoetryOverrides.extend (self: super: {
             gpt-index = super.gpt-index.overridePythonAttrs (old: {
               buildInputs = (old.buildInputs or [ ])
                 ++ [ python3Packages.setuptools ];
             });
           });
+        queryPackage = mkPoetryApplication {
+          inherit overrides;
+          preferWheels = true;
+          projectDir = ./query;
+        };
+        query = stdenv.mkDerivation {
+          name = "srvc-query-gpt-index";
+          src = ./query;
+          buildInputs = [ queryPackage.dependencyEnv ];
+          installPhase = ''
+            mkdir -p $out
+            cp -r bin $out
+          '';
+        };
+        trainPackage = mkPoetryApplication {
+          inherit overrides;
+          preferWheels = true;
+          projectDir = ./train;
         };
         train = stdenv.mkDerivation {
           name = "srvc-train-gpt-index";
@@ -48,7 +62,7 @@
           '';
         };
       in {
-        packages = { inherit train; };
+        packages = { inherit query train; };
         devShells.default = mkShell {
           inherit DOCS_HTML_PATH;
           buildInputs =
