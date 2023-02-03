@@ -27,12 +27,12 @@
         inherit (poetry2nix.legacyPackages.${system})
           defaultPoetryOverrides mkPoetryApplication mkPoetryEnv;
         DOCS_HTML_PATH = srvc.packages.${system}.docs-html;
-overrides = defaultPoetryOverrides.extend (self: super: {
-            gpt-index = super.gpt-index.overridePythonAttrs (old: {
-              buildInputs = (old.buildInputs or [ ])
-                ++ [ python3Packages.setuptools ];
-            });
+        overrides = defaultPoetryOverrides.extend (self: super: {
+          gpt-index = super.gpt-index.overridePythonAttrs (old: {
+            buildInputs = (old.buildInputs or [ ])
+              ++ [ python3Packages.setuptools ];
           });
+        });
         queryPackage = mkPoetryApplication {
           inherit overrides;
           preferWheels = true;
@@ -66,6 +66,31 @@ overrides = defaultPoetryOverrides.extend (self: super: {
             mv query-srvc-docs $out/bin
           '';
         };
+        query-project-package = mkPoetryApplication {
+          inherit overrides;
+          preferWheels = true;
+          projectDir = ./query-project;
+        };
+        query-project-bin = stdenv.mkDerivation {
+          name = "query-project-bin";
+          src = ./query-project;
+          buildInputs = [ query-project-package.dependencyEnv ];
+          installPhase = ''
+            mkdir -p $out
+            cp -r bin $out
+          '';
+        };
+        query-project = stdenv.mkDerivation {
+          name = "query-project";
+          src = ./data;
+          installPhase = ''
+            mkdir -p $out/bin
+            echo "#!/usr/bin/env bash" > query-project
+            echo "${query-project-bin}/bin/srvc-query-project \"${srvc-docs-index}/srvc.json\" \"\$@\"" >> query-project
+            chmod +x query-project
+            mv query-project $out/bin
+          '';
+        };
         trainPackage = mkPoetryApplication {
           inherit overrides;
           preferWheels = true;
@@ -81,7 +106,10 @@ overrides = defaultPoetryOverrides.extend (self: super: {
           '';
         };
       in {
-        packages = { inherit query query-srvc-docs srvc-docs-index train; };
+        packages = {
+          inherit query query-project query-srvc-docs srvc-docs-index
+            train;
+        };
         devShells.default = mkShell {
           inherit DOCS_HTML_PATH;
           buildInputs =
