@@ -66,31 +66,6 @@
             mv query-srvc-docs $out/bin
           '';
         };
-        query-project-package = mkPoetryApplication {
-          inherit overrides;
-          preferWheels = true;
-          projectDir = ./query-project;
-        };
-        query-project-bin = stdenv.mkDerivation {
-          name = "query-project-bin";
-          src = ./query-project;
-          buildInputs = [ query-project-package.dependencyEnv ];
-          installPhase = ''
-            mkdir -p $out
-            cp -r bin $out
-          '';
-        };
-        query-project = stdenv.mkDerivation {
-          name = "query-project";
-          src = ./data;
-          installPhase = ''
-            mkdir -p $out/bin
-            echo "#!/usr/bin/env bash" > query-project
-            echo "${query-project-bin}/bin/srvc-query-project \"${srvc-docs-index}/srvc.json\" \"\$@\"" >> query-project
-            chmod +x query-project
-            mv query-project $out/bin
-          '';
-        };
         trainPackage = mkPoetryApplication {
           inherit overrides;
           preferWheels = true;
@@ -107,7 +82,7 @@
         };
       in {
         packages = {
-          inherit query query-project query-srvc-docs srvc-docs-index
+          inherit query query-srvc-docs srvc-docs-index
             train;
         };
         devShells.default = mkShell {
