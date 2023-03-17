@@ -1,4 +1,8 @@
-from gpt_index import GPTSimpleVectorIndex, SimpleDirectoryReader
+from llama_index import GPTSimpleVectorIndex, LLMPredictor, SimpleDirectoryReader
+from llama_index.langchain_helpers.chatgpt import ChatGPTLLMPredictor
+from langchain import OpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.llms import OpenAIChat
 import argparse
 
 def main():
@@ -7,5 +11,6 @@ def main():
   parser.add_argument('query', type=str)
   args = parser.parse_args()
 
-  index = GPTSimpleVectorIndex.load_from_disk(args.index_file)
+  llm_predictor = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+  index = GPTSimpleVectorIndex.load_from_disk(args.index_file, llm_predictor=llm_predictor)
   print(index.query(args.query))

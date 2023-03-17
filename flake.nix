@@ -32,6 +32,10 @@
             buildInputs = (old.buildInputs or [ ])
               ++ [ python3Packages.setuptools ];
           });
+          llama-index = super.llama-index.overridePythonAttrs (old: {
+            propagatedBuildInputs = (old.propagatedBuildInputs or [ ])
+              ++ [ python3Packages.setuptools ];
+          });
         });
         queryPackage = mkPoetryApplication {
           inherit overrides;
