@@ -9,8 +9,9 @@ def main():
   parser = argparse.ArgumentParser(description='Query GPT using a gpt_index file')
   parser.add_argument('index_file', type=str)
   parser.add_argument('query', type=str)
+  parser.add_argument('-m', '--model', type=str, default='gpt-3.5-turbo')
   args = parser.parse_args()
 
-  llm_predictor = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"))
+  llm_predictor = LLMPredictor(llm=ChatOpenAI(temperature=0, model_name=args.model))
   index = GPTSimpleVectorIndex.load_from_disk(args.index_file, llm_predictor=llm_predictor)
   print(index.query(args.query))
